@@ -1,0 +1,76 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam defaultTextAlignment center
+skinparam linetype ortho
+
+' Interfaces
+interface IApplication {
+  + OnCreate(sessionID)
+  + OnLogon(sessionID)
+  + OnLogout(sessionID)
+  + ToAdmin(message, sessionID)
+  + FromAdmin(message, sessionID)
+  + ToApp(message, sessionID)
+  + FromApp(message, sessionID)
+}
+
+' Your implementation
+class MyFixApplication {
+  + custom logic (logging, orders, etc.)
+}
+MyFixApplication ..|> IApplication
+
+' Configuration classes
+class SessionSettings {
+  + Load from config file
+}
+
+class MessageStoreFactory {
+}
+class FileStoreFactory {
+}
+
+class LogFactory {
+}
+class FileLogFactory {
+}
+
+' Core engine
+class SocketInitiator {
+  + Start()
+  + Stop()
+  + Send(message, sessionID)
+}
+class SocketAcceptor {
+  + Start()
+  + Stop()
+  + Send(message, sessionID)
+}
+
+' Session class
+class SessionID
+
+' Relationships
+MyFixApplication --> SessionSettings : uses
+SocketInitiator --> SessionSettings : uses
+SocketInitiator --> MessageStoreFactory : uses
+SocketInitiator --> LogFactory : uses
+SocketInitiator --> SessionID : uses
+
+SocketAcceptor --> SessionSettings : uses
+SocketAcceptor --> MessageStoreFactory : uses
+SocketAcceptor --> LogFactory : uses
+SocketAcceptor --> SessionID : uses
+
+FileStoreFactory --|> MessageStoreFactory
+FileLogFactory --|> LogFactory
+
+' Simulator
+class "FIX Simulator / Counterparty" as Simulator {
+  + responds to messages
+  + can be QuickFIX/n or Fiximulator
+}
+Simulator --> SocketInitiator : connects with
+Simulator --> SocketAcceptor : connects with
+
+@enduml
